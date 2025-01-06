@@ -5,11 +5,11 @@ const proxyUrl = 'https://read.uberflip.com/hub'
 // const locale = Deno.env.get('GATSBY_LOCALE')
 const hostHeaders = {
   us: 'amazing-kangaroo-a479a6.netlify.app',
-//   gb: 'construction.autodesk.co.uk',
-//   eu: 'construction.autodesk.eu',
-//   au: 'construction.autodesk.com.au',
-//   nz: 'construction.autodesk.co.nz',
-//   jp: 'construction.autodesk.co.jp',
+  //   gb: 'construction.autodesk.co.uk',
+  //   eu: 'construction.autodesk.eu',
+  //   au: 'construction.autodesk.com.au',
+  //   nz: 'construction.autodesk.co.nz',
+  //   jp: 'construction.autodesk.co.jp',
 }
 // const hostHeader = hostHeaders[locale]
 const hostHeader = hostHeaders.us
@@ -41,6 +41,10 @@ export default async (request: Request) => {
     let path = url.replace(pathRegex, proxyUrl)
     path = `${path}${qs}`
 
+    // print cookies
+    const cookies = request.headers.get('Cookie')
+    console.log('cookies', cookies)
+
     const proxyRequest = new Request(path, {
       ...request,
       method: request.method,
@@ -49,6 +53,7 @@ export default async (request: Request) => {
         'X-Forwarded-Host': hostHeader,
         'X-Original-Host': hostHeader,
         'X-Netlify-Hostname': hostHeader,
+        'Cookie': request.headers.get('Cookie') || '', // Forward cookies
       },
       redirect: 'manual',
       body: request.body,
@@ -59,12 +64,12 @@ export default async (request: Request) => {
     console.log('response', response);
 
     if (response.status === 301 || response.status === 302) {
-        // Handle redirection
-        const location = response.headers.get('Location');
-        if (location) {
-          return Response.redirect(location, response.status);
-        }
+      // Handle redirection
+      const location = response.headers.get('Location');
+      if (location) {
+        return Response.redirect(location, response.status);
       }
+    }
 
     return response
   }
